@@ -1,6 +1,19 @@
-function __TS__Class(): LuaClass {
-    const c: LuaClass = { prototype: {} };
-    c.prototype.__index = c.prototype;
-    c.prototype.constructor = c;
-    return c;
+declare namespace _G {
+    let TS__CLASS__REGISTRY: { [id: string]: LuaClass };
+}
+
+_G.TS__CLASS__REGISTRY = _G.TS__CLASS__REGISTRY || {};
+
+function __TS__Class(this: void, id: string): LuaClass {
+    if (id !== undefined && _G.TS__CLASS__REGISTRY[id]) {
+        return _G.TS__CLASS__REGISTRY[id];
+    } else {
+        const c: LuaClass = { prototype: {} };
+        c.prototype.__index = c.prototype;
+        c.prototype.constructor = c;
+        if (id !== undefined) {
+            _G.TS__CLASS__REGISTRY[id] = c;
+        }
+        return c;
+    }
 }
