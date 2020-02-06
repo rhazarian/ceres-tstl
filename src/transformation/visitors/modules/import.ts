@@ -17,20 +17,25 @@ const getAbsoluteImportPath = (relativePath: string, directoryPath: string, opti
         ? path.resolve(options.baseUrl, relativePath)
         : path.resolve(directoryPath, relativePath);
 
-function getImportPath(context: TransformationContext, relativePath: string, node: ts.Node): string {
+function getImportPath(context: TransformationContext, modulePath: string, node: ts.Node): string {
     const { options, sourceFile } = context;
     const { fileName } = sourceFile;
     const rootDir = options.rootDir ? path.resolve(options.rootDir) : path.resolve(".");
+    const isAsbolutePath = !modulePath.startsWith(".")
 
-    const absoluteImportPath = path.format(
-        path.parse(getAbsoluteImportPath(relativePath, path.dirname(fileName), options))
-    );
-    const absoluteRootDirPath = path.format(path.parse(rootDir));
-    if (absoluteImportPath.includes(absoluteRootDirPath)) {
-        return formatPathToLuaPath(absoluteImportPath.replace(absoluteRootDirPath, "").slice(1));
+    if (isAsbolutePath) {
+        return formatPathToLuaPath(modulePath)
     } else {
-        context.diagnostics.push(unresolvableRequirePath(node, relativePath));
-        return relativePath;
+        const absoluteImportPath = path.format(
+            path.parse(getAbsoluteImportPath(modulePath, path.dirname(fileName), options))
+        );
+        const absoluteRootDirPath = path.format(path.parse(rootDir));
+        if (absoluteImportPath.includes(absoluteRootDirPath)) {
+            return formatPathToLuaPath(absoluteImportPath.replace(absoluteRootDirPath, "").slice(1));
+        } else {
+            context.diagnostics.push(unresolvableRequirePath(node, modulePath));
+            return modulePath;
+        }
     }
 }
 
